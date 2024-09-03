@@ -8,13 +8,14 @@ void scene_create(Scene *scene)
 {
     const Window *window = window_get_instance();
 
+
     // TODO: load scene from file (YAML)
 
     // register 10 objects for initialization
     scene->registry.game_objects = da_create(10);
     scene->registry.components = da_create(10);
 
-    const Vector2 scale = {
+    Vector2 scale = {
         .x = 50,
         .y = 50
     };
@@ -39,23 +40,35 @@ void scene_create(Scene *scene)
         .y = window->height / 2.0f
     };
 
+    scale.x = 80.0f;
+    scale.y = 80.0f;
     GameObject *go = create_game_object(&scene->registry, pos, scale);
     SpriteComponent *sprite = create_component(TypeSprite);
     sprite->texture = load_sprite_texture("data/textures/checkerboard.png", (i32)scale.x, (i32)scale.y);
     add_component(go, sprite, &scene->registry);
+
+    scene->camera.offset = (Vector2){0.0f, 0.0f};
+    scene->camera.target = (Vector2){0.0f, 0.0f};
+    scene->camera.rotation = 0.0f;
+    scene->camera.zoom = 1.0f;
 }
 
-void scene_update_simulation(const Scene *scene, const f32 delta_time)
+void scene_update_simulation(Scene *scene, const f32 delta_time)
 {
+    const f32 speed = 100.0f;
+
     Vector3 velocity = {0.0f, 0.0f };
     if (IsKeyDown(KEY_W))
-        velocity.y -= 1.0f;
-    else if (IsKeyDown(KEY_S))
         velocity.y += 1.0f;
+    else if (IsKeyDown(KEY_S))
+        velocity.y -= 1.0f;
     if (IsKeyDown(KEY_A))
-        velocity.x -= 1.0f;
-    else if (IsKeyDown(KEY_D))
         velocity.x += 1.0f;
+    else if (IsKeyDown(KEY_D))
+        velocity.x -= 1.0f;
+
+    scene->camera.offset.x += velocity.x * delta_time * speed;
+    scene->camera.offset.y += velocity.y * delta_time * speed;
 
     for (size_t i = 0; i < scene->registry.game_objects->size; ++i)
     {
@@ -65,18 +78,17 @@ void scene_update_simulation(const Scene *scene, const f32 delta_time)
             void *comp = get_component(go, TypeTransform, &scene->registry);
             if (comp != NULL)
             {
-                const f32 speed = 100.0f;
                 TransformComponent *transform = comp;
-                transform->translation.x += velocity.x * delta_time * speed;
-                transform->translation.y += velocity.y * delta_time * speed;
                 transform->angle += delta_time * speed;
             }
         }
     }
 }
 
-void scene_update_render(const Scene *scene, const f32 delta_time)
+void scene_update_render(Scene *scene, const f32 delta_time)
 {
+    BeginMode2D(scene->camera);
+
     for (size_t i = 0; i < scene->registry.game_objects->size; ++i)
     {
         const void *go = scene->registry.game_objects->data[i];
@@ -91,13 +103,15 @@ void scene_update_render(const Scene *scene, const f32 delta_time)
             }
         }
     }
+
+    EndMode2D();
 }
 
 void scene_destroy(const Scene *scene)
 {
     for (size_t i = 0; i < scene->registry.game_objects->size; ++i)
     {
-        const GameObject *go = scene->registry.game_objects->data[i];
+        GameObject *go = scene->registry.game_objects->data[i];
         destroy_game_object(&scene->registry, go);
     }
 
