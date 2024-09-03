@@ -42,10 +42,15 @@ GameObject *create_game_object(const GoRegistry *registry, const Vector2 positio
     return go;
 }
 
-void destroy_game_object(const GoRegistry *registry, const GameObject *go)
+void destroy_game_object(const GoRegistry *registry, GameObject *go)
 {
     for (u8 i = 0; i < go->component_count; ++i)
+    {
+        const Component *comp = registry->components->data[i];
+        if (comp != NULL)
+            remove_component(go, comp->type, registry);
         da_remove_element(registry->components, go->component_ids[i]);
+    }
 
     da_remove_element(registry->game_objects, go->id);
 }
@@ -68,6 +73,12 @@ void remove_component(GameObject *go, const CompType type, const GoRegistry *reg
     Component *comp = find_component_by_type(registry, *go, type);
     if (comp != NULL)
     {
+        if (type == TypeSprite)
+        {
+            const SpriteComponent *sprite = (SpriteComponent *)comp;
+            UnloadTexture(sprite->texture);
+        }
+
         // remove the component from registry
         da_remove_element(registry->components, comp->id);
 
@@ -78,7 +89,7 @@ void remove_component(GameObject *go, const CompType type, const GoRegistry *reg
                 go->component_ids[i] = go->component_ids[i + 1];
         }
 
-        free(comp);
+        comp = NULL;
         go->component_count--;
     }
 }

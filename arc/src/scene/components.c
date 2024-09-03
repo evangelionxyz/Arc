@@ -29,31 +29,6 @@ void *create_component(const CompType type)
     }
 }
 
-void destroy_component(void *component)
-{
-    if (component == NULL)
-        return;
-
-    Component *comp = component;
-    switch (comp->type)
-    {
-    case TypeSprite:
-        {
-            const SpriteComponent *sc = component;
-            UnloadTexture(sc->texture);
-            free(comp);
-            break;
-        }
-    case TypeTransform:
-    case TypeRigidbody:
-        {
-            free(comp);
-            break;
-        }
-    default: break;
-    }
-}
-
 Texture load_sprite_texture(const char *path, const i32 width, const i32 height)
 {
     Image image = LoadImage("data/textures/checkerboard.png");

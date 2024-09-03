@@ -1,4 +1,7 @@
 #include "scene.h"
+
+#include <stdio.h>
+
 #include "core/window.h"
 
 void scene_create(Scene *scene)
@@ -27,6 +30,7 @@ void scene_create(Scene *scene)
 
         GameObject *go = create_game_object(&scene->registry, pos, scale);
         SpriteComponent *sprite = create_component(TypeSprite);
+        sprite->tint_color = (index + count) % 2 == 0 ? GREEN : BLUE;
         add_component(go, sprite, &scene->registry);
     }
 
@@ -93,16 +97,10 @@ void scene_destroy(const Scene *scene)
 {
     for (size_t i = 0; i < scene->registry.game_objects->size; ++i)
     {
-        GameObject *go = scene->registry.game_objects->data[i];
-        for (u8 j = 0; j < go->component_count; ++j)
-        {
-            void *comp = get_component(go, TypeTransform, &scene->registry);
-            if (comp != NULL)
-                destroy_component(comp);
-        }
-
+        const GameObject *go = scene->registry.game_objects->data[i];
         destroy_game_object(&scene->registry, go);
     }
+
     da_free(scene->registry.game_objects);
     da_free(scene->registry.components);
 }

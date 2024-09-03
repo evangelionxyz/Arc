@@ -19,7 +19,7 @@ typedef struct GoRegistry {
 } GoRegistry;
 
 GameObject *create_game_object(const GoRegistry *registry, Vector2 position, Vector2 scale);
-void destroy_game_object(const GoRegistry *registry, const GameObject *go);
+void destroy_game_object(const GoRegistry *registry, GameObject *go);
 void add_component(GameObject *go, void *component, const GoRegistry *registry);
 void remove_component(GameObject *go, CompType type, const GoRegistry *registry);
 void *get_component(const GameObject *go, CompType type, const GoRegistry *registry);
