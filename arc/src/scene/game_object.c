@@ -21,9 +21,10 @@ static void *find_component_by_type(const GoRegistry *registry, const GameObject
     return NULL;
 }
 
-GameObject *create_game_object(const GoRegistry *registry, const Vector2 position, const Vector2 scale)
+GameObject *create_game_object(const char *name, const GoRegistry *registry, const Vector2 position, const Vector2 scale)
 {
     GameObject *go = malloc(sizeof(GameObject));
+    go->name = name;
     go->id = registry->game_objects->size;
     go->component_count = 0;
 
@@ -40,6 +41,17 @@ GameObject *create_game_object(const GoRegistry *registry, const Vector2 positio
 
     da_push_back(registry->game_objects, go);
     return go;
+}
+
+GameObject *get_game_object_by_name(const char *name, const GoRegistry *registry)
+{
+    for (u8 i = 0; i < registry->game_objects->size; ++i)
+    {
+        GameObject *go = registry->game_objects->data[i];
+        if (go->name == name)
+            return go;
+    }
+    return NULL;
 }
 
 void destroy_game_object(const GoRegistry *registry, GameObject *go)

@@ -42,17 +42,41 @@ Texture load_sprite_texture(const char *path, const i32 width, const i32 height)
 
 void draw_sprite(const TransformComponent *transform, const SpriteComponent *sprite)
 {
-    const Rectangle rectangle = {
-        transform->translation.x - transform->scale.x / 2.0f,
-        transform->translation.y - transform->scale.y / 2.0f,
-        transform->scale.x,
-        transform->scale.y
-    };
+
 
     if (IsTextureReady(sprite->texture))
-        DrawTexture(sprite->texture, rectangle.x, rectangle.y, sprite->tint_color);
-    else DrawRectanglePro(rectangle,
-        (Vector2){rectangle.width / 2.0f, rectangle.height / 2.0f},
+    {
+        const Rectangle src = {
+            0.0f,
+            0.0f,
+            transform->scale.x,
+            transform->scale.y,
+        };
+
+        const Rectangle dst = {
+            transform->translation.x,
+            transform->translation.y,
+        transform->scale.x,
+        transform->scale.y
+        };
+
+        DrawTexturePro(sprite->texture, src, dst,
+            (Vector2){dst.width / 2.0f, dst.height / 2.0f },
+            transform->angle,
+            sprite->tint_color);
+    }
+    else
+    {
+        const Rectangle center = {
+            transform->translation.x - transform->scale.x / 2.0f,
+            transform->translation.y - transform->scale.y / 2.0f,
+            transform->scale.x,
+            transform->scale.y
+        };
+
+        DrawRectanglePro(center,
+        (Vector2){center.width / 2.0f, center.height / 2.0f},
         transform->angle,
         sprite->tint_color);
+    }
 }
