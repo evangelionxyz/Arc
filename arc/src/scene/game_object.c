@@ -21,7 +21,7 @@ static void *find_component_by_type(const GoRegistry *registry, const GameObject
     return NULL;
 }
 
-GameObject *create_game_object(GoRegistry *registry, const Vector2 position, const Vector2 scale)
+GameObject *create_game_object(const GoRegistry *registry, const Vector2 position, const Vector2 scale)
 {
     GameObject *go = malloc(sizeof(GameObject));
     go->id = registry->game_objects->size;

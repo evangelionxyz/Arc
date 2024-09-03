@@ -29,7 +29,8 @@ typedef struct TransformComponent
 typedef struct SpriteComponent
 {
     Component base;
-    Color color;
+    Color tint_color;
+    Texture2D texture;
 } SpriteComponent;
 
 typedef struct Rigidbody2DComponent
@@ -38,6 +39,10 @@ typedef struct Rigidbody2DComponent
 } Rigidbody2DComponent;
 
 void *create_component(CompType type);
+void destroy_component(void *component);
+
+Texture load_sprite_texture(const char *path, i32 width, i32 height);
+
 void draw_sprite(const TransformComponent *transform, const SpriteComponent *sprite);
 
 #endif

@@ -11,27 +11,37 @@ void scene_create(Scene *scene)
     scene->registry.game_objects = da_create(10);
     scene->registry.components = da_create(10);
 
-    i32 count = 5;
+    const Vector2 scale = {
+        .x = 50,
+        .y = 50
+    };
+
+    const i32 count = 5;
+
     for (i32 index = -count; index < count; index++)
     {
-        const Vector2 scale = {
-            .x = 50,
-            .y = 50
-        };
-
         const Vector2 pos = {
-            .x = window->width / 2.0f - scale.x / 2.0f + index * scale.x * 1.5f,
-            .y = window->height / 2.0f - scale.y / 2.0f + index * scale.x * 1.5f
+            .x = window->width / 2.0f + index * scale.x * 1.5f,
+            .y = window->height / 2.0f + index * scale.x * 1.5f
         };
 
         GameObject *go = create_game_object(&scene->registry, pos, scale);
         SpriteComponent *sprite = create_component(TypeSprite);
-        sprite->color = MAROON;
         add_component(go, sprite, &scene->registry);
     }
+
+    const Vector2 pos = {
+        .x = window->width / 2.0f,
+        .y = window->height / 2.0f
+    };
+
+    GameObject *go = create_game_object(&scene->registry, pos, scale);
+    SpriteComponent *sprite = create_component(TypeSprite);
+    sprite->texture = load_sprite_texture("data/textures/checkerboard.png", (i32)scale.x, (i32)scale.y);
+    add_component(go, sprite, &scene->registry);
 }
 
-void scene_update_simulation(const Scene *scene, const float delta_time)
+void scene_update_simulation(const Scene *scene, const f32 delta_time)
 {
     Vector3 velocity = {0.0f, 0.0f };
     if (IsKeyDown(KEY_W))
@@ -51,7 +61,7 @@ void scene_update_simulation(const Scene *scene, const float delta_time)
             void *comp = get_component(go, TypeTransform, &scene->registry);
             if (comp != NULL)
             {
-                const float speed = 100.0f;
+                const f32 speed = 100.0f;
                 TransformComponent *transform = comp;
                 transform->translation.x += velocity.x * delta_time * speed;
                 transform->translation.y += velocity.y * delta_time * speed;
@@ -61,7 +71,7 @@ void scene_update_simulation(const Scene *scene, const float delta_time)
     }
 }
 
-void scene_update_render(const Scene *scene, const float delta_time)
+void scene_update_render(const Scene *scene, const f32 delta_time)
 {
     for (size_t i = 0; i < scene->registry.game_objects->size; ++i)
     {
@@ -81,6 +91,18 @@ void scene_update_render(const Scene *scene, const float delta_time)
 
 void scene_destroy(const Scene *scene)
 {
+    for (size_t i = 0; i < scene->registry.game_objects->size; ++i)
+    {
+        GameObject *go = scene->registry.game_objects->data[i];
+        for (u8 j = 0; j < go->component_count; ++j)
+        {
+            void *comp = get_component(go, TypeTransform, &scene->registry);
+            if (comp != NULL)
+                destroy_component(comp);
+        }
+
+        destroy_game_object(&scene->registry, go);
+    }
     da_free(scene->registry.game_objects);
     da_free(scene->registry.components);
 }

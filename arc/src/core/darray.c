@@ -71,7 +71,10 @@ bool da_remove_element(DynamicArray *array, size_t index)
         return false;
 
     // shift elements to the left
-    size_t size = (array->size - index - 1) * sizeof(void *);
+    const size_t size = (array->size - index - 1) * sizeof(void *);
+    if (size >= array->size)
+        return false;
+
     memmove(&array->data[index], &array->data[index + 1], size);
     
     array->data[array->size] = NULL;
