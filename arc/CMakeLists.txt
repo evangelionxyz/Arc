@@ -14,17 +14,22 @@ add_executable(arc
     src/scene/components.h
     src/scene/scene.c
     src/scene/scene.h
+    src/scene/physics_2d.h
+    src/scene/physics_2d.c
 )
 
 target_include_directories(arc PRIVATE
     ${THIRD_PARTY_DIR}/raylib/src/
+    ${THIRD_PARTY_DIR}/box2d/include/
     ${ROOT_DIR}/arc/src
 )
 
 add_dependencies(arc
     raylib
+    box2d
 )
 
 target_link_libraries(arc PRIVATE
     raylib
+    box2d
 )

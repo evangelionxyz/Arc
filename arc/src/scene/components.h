@@ -2,14 +2,23 @@
 #define COMPONENTS_H
 
 #include "raylib.h"
+#include "box2d/id.h"
 #include "core/types.h"
+
+#include <stdlib.h>
+
+typedef enum
+{
+    Static, Kinematic, Dynamic
+} BodyType2D;
 
 typedef enum CompType
 {
-    TypeNone = 0,
-    TypeTransform,
-    TypeSprite,
-    TypeRigidbody
+    T_NONE = 0,
+    T_TRANSFORM,
+    T_SPRITE,
+    T_RIGIDBODY,
+    T_BOX_COLLIDER
 } CompType;
 
 typedef struct Component
@@ -21,9 +30,9 @@ typedef struct Component
 typedef struct TransformComponent
 {
     Component base;
-    Vector2 translation;
-    Vector2 scale;
-    f32 angle;
+    Vector3 translation;
+    Vector3 scale;
+    Vector3 rotation;
 }TransformComponent;
 
 typedef struct SpriteComponent
@@ -31,12 +40,33 @@ typedef struct SpriteComponent
     Component base;
     Color tint_color;
     Texture2D texture;
+    bool textured;
 } SpriteComponent;
 
 typedef struct Rigidbody2DComponent
 {
     Component base;
 } Rigidbody2DComponent;
+
+typedef struct BoxCollider2DComponent
+{
+    Component base;
+    b2BodyId body_id;
+    BodyType2D body_type;
+
+    Vector2 offset;
+    Vector2 size;
+    Vector2 linear_velocity;
+
+    float angular_velocity;
+    float gravity_scale;
+    float friction;
+    float restitution;
+
+    bool is_sensor;
+    bool use_gravity;
+    bool fixed_rotation;
+} BoxCollider2DComponent;
 
 void *create_component(CompType type);
 

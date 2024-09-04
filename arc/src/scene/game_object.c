@@ -1,98 +1,111 @@
 #include "game_object.h"
+#include "scene.h"
 
 #include <assert.h>
 
-static void *find_component_by_id(const GoRegistry *registry, const u32 component_id)
+static void *find_component_by_id(const Scene *scene, const u32 component_id)
 {
-    if (component_id >= registry->components->size)
+    if (component_id >= scene->registry.components->size)
         return NULL;
 
-    return registry->components->data[component_id];
+    return scene->registry.components->data[component_id];
 }
 
-static void *find_component_by_type(const GoRegistry *registry, const GameObject game_object, const CompType component_type)
+static void *find_component_by_type(const Scene *scene, const GameObject game_object, const CompType component_type)
 {
     for (u8 i = 0; i < game_object.component_count; ++i)
     {
-        Component *comp = registry->components->data[i];
+        Component *comp = scene->registry.components->data[i];
         if (comp != NULL && comp->type == component_type)
             return comp;
     }
     return NULL;
 }
 
-GameObject *create_game_object(const char *name, const GoRegistry *registry, const Vector2 position, const Vector2 scale)
+GameObject *create_game_object(const char *name, const Scene *scene, const Vector3 position, const Vector3 scale, const Vector3 rotation)
 {
+    if (scene == NULL)
+        return NULL;
+
     GameObject *go = malloc(sizeof(GameObject));
-    go->name = name;
-    go->id = registry->game_objects->size;
+
+    if (go == NULL)
+        return NULL;
+
     go->component_count = 0;
+    go->name            = name;
+    go->id              = scene->registry.game_objects->size;
 
     for (u8 i = 0; i < MAX_COMPONENT; ++i)
-        go->component_ids[i] = (u32)-1;
+        go->component_ids[i] = INVALID_COMPONENT_ID;
 
-    TransformComponent *tc = create_component(TypeTransform);
-    tc->base.id = registry->components->size;
-    tc->translation = position;
-    tc->scale = scale;
-    tc->angle = 0.0f;
+    TransformComponent *tc = create_component(T_TRANSFORM);
+    tc->base.id            = scene->registry.components->size;
+    tc->translation        = position;
+    tc->scale              = scale;
+    tc->rotation           = rotation;
 
-    add_component(go, tc, registry);
-
-    da_push_back(registry->game_objects, go);
+    add_component(go, tc, scene);
+    da_push_back(scene->registry.game_objects, go);
     return go;
 }
 
-GameObject *get_game_object_by_name(const char *name, const GoRegistry *registry)
+GameObject *get_game_object_by_name(const char *name, const Scene *scene)
 {
-    for (u8 i = 0; i < registry->game_objects->size; ++i)
+    for (u8 i = 0; i < scene->registry.game_objects->size; ++i)
     {
-        GameObject *go = registry->game_objects->data[i];
-        if (go->name == name)
+        GameObject *go = scene->registry.game_objects->data[i];
+        if (strcmp(go->name, name) == 0)
             return go;
     }
     return NULL;
 }
 
-void destroy_game_object(const GoRegistry *registry, GameObject *go)
+void destroy_game_object(GameObject *go, Scene *scene)
 {
+    if (go == NULL || scene == NULL) return;
+
     for (u8 i = 0; i < go->component_count; ++i)
     {
-        const Component *comp = registry->components->data[i];
+        Component *comp = scene->registry.components->data[i];
         if (comp != NULL)
-            remove_component(go, comp->type, registry);
-        da_remove_element(registry->components, go->component_ids[i]);
+            remove_component(go, comp->type, scene);
+
+        // remove component from registry
+        da_remove_element(scene->registry.components, go->component_ids[i]);
     }
 
-    da_remove_element(registry->game_objects, go->id);
+    // remove game object from registry
+    da_remove_element(scene->registry.game_objects, go->id);
 }
 
-void add_component(GameObject *go, void *component, const GoRegistry *registry)
+void add_component(GameObject *go, void *component, const Scene *scene)
 {
     // set component registry id base on component size
-    const size_t comp_reg_id = registry->components->size;
+    const size_t comp_reg_id = scene->registry.components->size;
     Component *comp = component;
 
     comp->id = comp_reg_id;
     go->component_ids[go->component_count] = comp->id;
     go->component_count++;
 
-    da_push_back(registry->components, component);
+    da_push_back(scene->registry.components, component);
 }
 
-void remove_component(GameObject *go, const CompType type, const GoRegistry *registry)
+void remove_component(GameObject *go, const CompType type, Scene *scene)
 {
-    Component *comp = find_component_by_type(registry, *go, type);
+    Component *comp = find_component_by_type(scene, *go, type);
     if (comp != NULL)
     {
-        if (type == TypeSprite)
+        if (type == T_SPRITE)
         {
             const SpriteComponent *sprite = (SpriteComponent *)comp;
-            UnloadTexture(sprite->texture);
+            if (IsTextureReady(sprite->texture))
+                UnloadTexture(sprite->texture);
         }
 
         // remove the component from registry
-        da_remove_element(registry->components, comp->id);
+        da_remove_element(scene->registry.components, comp->id);
 
         // remove the component from game object
         if (comp->id < go->component_count)
@@ -101,17 +114,30 @@ void remove_component(GameObject *go, const CompType type, const GoRegistry *reg
                 go->component_ids[i] = go->component_ids[i + 1];
         }
 
+        // reset the very last component
+        go->component_ids[go->component_count - 1] = INVALID_COMPONENT_ID;
+        
         comp = NULL;
         go->component_count--;
     }
 }
 
-void *get_component(const GameObject *go, const CompType type, const GoRegistry *registry)
+TransformComponent *get_transform_component(const GameObject *go, const Scene *scene)
+{
+    if (go == NULL || scene == NULL)
+        return NULL;
+
+    // transform is always the first element
+    const u32 component_id = go->component_ids[0];
+    return scene->registry.components->data[component_id];
+}
+
+void *get_component(const GameObject *go, const CompType type, const Scene *scene)
 {
     for (u8 i = 0; i < go->component_count; ++i)
     {
         const u32 component_id = go->component_ids[i];
-        Component *comp = find_component_by_id(registry, component_id);
+        Component *comp = find_component_by_id(scene, component_id);
         if (comp != NULL && comp->type == type)
             return comp;
     }
@@ -119,16 +145,15 @@ void *get_component(const GameObject *go, const CompType type, const GoRegistry 
     return NULL;
 }
 
-bool has_component(const GameObject *go, CompType type, const GoRegistry *registry)
+bool has_component(const GameObject *go, CompType type, const Scene *scene)
 {
     for (u8 i = 0; i < go->component_count; ++i)
     {
         const u32 component_id = go->component_ids[i];
-        const Component *comp = (Component *)find_component_by_id(registry, component_id);
+        const Component *comp = (Component *)find_component_by_id(scene, component_id);
+
         if (comp != NULL && comp->type == type)
-        {
             return true;
-        }
     }
 
     return false;
