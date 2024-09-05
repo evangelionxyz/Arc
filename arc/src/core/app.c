@@ -16,7 +16,7 @@ Application *app_get_instance()
 
 void app_run(Application *app)
 {
-    app->window = window_init(600, 400, "Arc");
+    app->window = window_init(1080, 700, "Arc");
     app->window->background_color = RAYWHITE;
     app->time_seconds = 0.0f;
     scene_create(&app->scene);
@@ -33,6 +33,8 @@ void app_run(Application *app)
         BeginDrawing();
         {
             window_clear(app->window);
+            app_render_gui(app, delta_time);
+
             app_update_render(app, delta_time);
         }
         EndDrawing();
@@ -41,15 +43,6 @@ void app_run(Application *app)
 
 void app_update_simulation(Application *app, f32 delta_time)
 {
-    static f32 refresh_time = 0.0f;
-    refresh_time += delta_time;
-    if (refresh_time >= 0.25f)
-    {
-        const char *new_title = str_from_format("Arc - %.2f FPS", 1.0f / delta_time);
-        window_set_title(app->window, new_title);
-        refresh_time = 0.0f;
-    }
-
     scene_update_simulation(&app->scene, delta_time);
 }
 
@@ -67,4 +60,20 @@ void app_close(Application *app)
         free(app);
     }
         
+}
+
+void app_render_gui(Application *app, f32 delta_time)
+{
+    static f32 refresh_time = 0.0f;
+    refresh_time += delta_time;
+
+    static const char *fps_counter = "";
+    if (refresh_time >= 0.25f)
+    {
+        refresh_time = 0.0f;
+        fps_counter = str_from_format("FPS: %.2f", 1.0f / delta_time);
+    }
+
+    DrawText(fps_counter, 20, 20, 32, RED);
+    
 }

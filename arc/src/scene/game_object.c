@@ -103,6 +103,12 @@ void remove_component(GameObject *go, const CompType type, Scene *scene)
             if (IsTextureReady(sprite->texture))
                 UnloadTexture(sprite->texture);
         }
+        else if (type == T_BOX_COLLIDER)
+        {
+            const BoxCollider2DComponent *bc = (BoxCollider2DComponent *)comp;
+            b2DestroyBody(bc->body_id);
+            b2DestroyShape(bc->shape_id);
+        }
 
         // remove the component from registry
         da_remove_element(scene->registry.components, comp->id);

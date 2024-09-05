@@ -30,7 +30,7 @@ void scene_create(Scene *scene)
 
         BoxCollider2DComponent *bc = create_component(T_BOX_COLLIDER);
         
-        bc->gravity_scale = 760.0f; // m/ s*2
+        bc->gravity_scale = 1060.0f; // m/ s*2
         bc->restitution = 10.0f;
         bc->friction = 0.0f;
         bc->body_type = Dynamic;
@@ -38,17 +38,18 @@ void scene_create(Scene *scene)
         add_component(go, bc, scene);
     }
 
-    for (i32 i = -10; i < 10; i++)
+    i32 count = 50;
+    for (i32 i = -count; i < count; i++)
     {
-        pos.y = -200.0f;
-        pos.x = i + i * scale.x;
+        pos.y = -200.0f + i * scale.y / 1.5f;
+        pos.x = i + i * scale.x / 2.0f;
         GameObject *go = create_game_object("enemy", scene, pos, scale, rotation);
         SpriteComponent *sprite = create_component(T_SPRITE);
         sprite->tint_color = i % 2 == 0 ? BLUE : ORANGE;
         add_component(go, sprite, scene);
         BoxCollider2DComponent *bc = create_component(T_BOX_COLLIDER);
 
-        bc->gravity_scale = 760.0f; // m/ s*2
+        bc->gravity_scale = 1060.0f; // m/ s*2
         bc->restitution = 10.0f;
         bc->friction = 0.0f;
         bc->body_type = Dynamic;
@@ -60,7 +61,7 @@ void scene_create(Scene *scene)
     {
         pos.x = 0.0f;
         pos.y = 100.0f;
-        scale.x = 1000.0f;
+        scale.x = 10000.0f;
         scale.y = 50.0f;
 
         GameObject *go = create_game_object("floor", scene, pos, scale, rotation);

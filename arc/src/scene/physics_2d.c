@@ -72,7 +72,7 @@ void physics_2d_attach_box_collider(b2WorldId world, BoxCollider2DComponent *box
     shape_def.restitution = box_collider->restitution;
     shape_def.isSensor    = box_collider->is_sensor;
 
-    b2CreatePolygonShape(box_collider->body_id, &shape_def, &box_shape);
+    box_collider->shape_id = b2CreatePolygonShape(box_collider->body_id, &shape_def, &box_shape);
 }
 
 void physics_2d_simulate(Scene *scene, float delta_time)

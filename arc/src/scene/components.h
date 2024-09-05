@@ -12,7 +12,7 @@ typedef enum
     Static, Kinematic, Dynamic
 } BodyType2D;
 
-typedef enum CompType
+typedef enum
 {
     T_NONE = 0,
     T_TRANSFORM,
@@ -21,13 +21,13 @@ typedef enum CompType
     T_BOX_COLLIDER
 } CompType;
 
-typedef struct Component
+typedef struct
 {
     CompType type;
     size_t id;
 } Component;
 
-typedef struct TransformComponent
+typedef struct
 {
     Component base;
     Vector3 translation;
@@ -35,7 +35,7 @@ typedef struct TransformComponent
     Vector3 rotation;
 }TransformComponent;
 
-typedef struct SpriteComponent
+typedef struct
 {
     Component base;
     Color tint_color;
@@ -43,15 +43,16 @@ typedef struct SpriteComponent
     bool textured;
 } SpriteComponent;
 
-typedef struct Rigidbody2DComponent
+typedef struct
 {
     Component base;
 } Rigidbody2DComponent;
 
-typedef struct BoxCollider2DComponent
+typedef struct
 {
     Component base;
     b2BodyId body_id;
+    b2ShapeId shape_id;
     BodyType2D body_type;
 
     Vector2 offset;
@@ -67,6 +68,7 @@ typedef struct BoxCollider2DComponent
     bool use_gravity;
     bool fixed_rotation;
 } BoxCollider2DComponent;
+
 
 void *create_component(CompType type);
 

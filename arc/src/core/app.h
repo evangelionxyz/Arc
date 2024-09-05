@@ -17,5 +17,6 @@ void app_run(Application *app);
 void app_close(Application *app);
 void app_update_simulation(Application *app, f32 delta_time);
 void app_update_render(Application *app, f32 delta_time);
+void app_render_gui(Application *app, f32 delta_time);
 
 #endif
