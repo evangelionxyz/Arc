@@ -22,12 +22,6 @@ void *create_component(const CompType type)
             comp->rotation    = (Vector3) { .x = 0.0f, .y = 0.0f, .z = 0.0f };
             return comp;
         }
-    case T_RIGIDBODY:
-        {
-            Rigidbody2DComponent *comp = malloc(sizeof(Rigidbody2DComponent));
-            comp->base.type            = type;
-            return comp;
-        }
     case T_BOX_COLLIDER:
         {
             BoxCollider2DComponent *comp = malloc(sizeof(BoxCollider2DComponent));
@@ -43,6 +37,10 @@ void *create_component(const CompType type)
             comp->is_sensor        = false;
             comp->fixed_rotation   = false;
             comp->use_gravity      = true;
+
+            comp->user_data        = NULL;
+
+            comp->event_count      = 0;
 
             return comp;
         }

@@ -15,14 +15,15 @@ static void *find_component_by_type(const Scene *scene, const GameObject game_ob
 {
     for (u8 i = 0; i < game_object.component_count; ++i)
     {
-        Component *comp = scene->registry.components->data[i];
+        const u32 id = game_object.component_ids[i];
+        Component *comp = scene->registry.components->data[id];
         if (comp != NULL && comp->type == component_type)
             return comp;
     }
     return NULL;
 }
 
-GameObject *create_game_object(const char *name, const Scene *scene, const Vector3 position, const Vector3 scale, const Vector3 rotation)
+GameObject *create_game_object(const char *name, Scene *scene, const Vector3 position, const Vector3 scale, const Vector3 rotation)
 {
     if (scene == NULL)
         return NULL;
@@ -33,11 +34,15 @@ GameObject *create_game_object(const char *name, const Scene *scene, const Vecto
         return NULL;
 
     go->component_count = 0;
-    go->name            = name;
     go->id              = scene->registry.game_objects->size;
+    go->name            = name;
+    go->scene           = scene;
 
+    // set default value for all of Components slot
     for (u8 i = 0; i < MAX_COMPONENT; ++i)
+    {
         go->component_ids[i] = INVALID_COMPONENT_ID;
+    }
 
     TransformComponent *tc = create_component(T_TRANSFORM);
     tc->base.id            = scene->registry.components->size;
@@ -67,22 +72,21 @@ void destroy_game_object(GameObject *go, Scene *scene)
 
     for (u8 i = 0; i < go->component_count; ++i)
     {
-        Component *comp = scene->registry.components->data[i];
+        // remove COMPONENT from SCENE REGISTRY
+        const u32 id = go->component_ids[i];
+        Component *comp = scene->registry.components->data[id];
         if (comp != NULL)
             remove_component(go, comp->type, scene);
-
-        // remove component from registry
-        da_remove_element(scene->registry.components, go->component_ids[i]);
     }
 
-    // remove game object from registry
+    // remove GAME OBJECT from SCENE REGISTRY
     da_remove_element(scene->registry.game_objects, go->id);
 }
 
 void add_component(GameObject *go, void *component, const Scene *scene)
 {
     // set component registry id base on component size
-    const size_t comp_reg_id = scene->registry.components->size;
+    const u32 comp_reg_id = (u32)scene->registry.components->size;
     Component *comp = component;
 
     comp->id = comp_reg_id;
@@ -100,31 +104,33 @@ void remove_component(GameObject *go, const CompType type, Scene *scene)
         if (type == T_SPRITE)
         {
             const SpriteComponent *sprite = (SpriteComponent *)comp;
-            if (IsTextureReady(sprite->texture))
-                UnloadTexture(sprite->texture);
+            UnloadTexture(sprite->texture);
         }
         else if (type == T_BOX_COLLIDER)
         {
             const BoxCollider2DComponent *bc = (BoxCollider2DComponent *)comp;
-            b2DestroyBody(bc->body_id);
-            b2DestroyShape(bc->shape_id);
+            if (b2Body_IsValid(bc->body_id))
+                b2DestroyBody(bc->body_id);
         }
 
         // remove the component from registry
         da_remove_element(scene->registry.components, comp->id);
 
         // remove the component from game object
-        if (comp->id < go->component_count)
-        {
-            for (u8 i = comp->id; i < go->component_count - 1; ++i)
-                go->component_ids[i] = go->component_ids[i + 1];
-        }
+         for (u8 i = 0; i < go->component_count; ++i)
+         {
+            if (go->component_ids[i] == comp->id)
+            {
+                // shift the component IDs to fill the gap
+                for (u8 j = i; j < go->component_count; ++j)
+                    go->component_ids[j] = go->component_ids[j + 1];
 
-        // reset the very last component
-        go->component_ids[go->component_count - 1] = INVALID_COMPONENT_ID;
-        
-        comp = NULL;
-        go->component_count--;
+                // clear the last component ID slot
+                go->component_ids[go->component_count - 1] = INVALID_COMPONENT_ID;
+                go->component_count--;
+                break; // exit the loop once the component is removed
+            }
+         }
     }
 }
 

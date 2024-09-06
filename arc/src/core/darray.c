@@ -40,9 +40,8 @@ bool da_pop_back(DynamicArray *array)
 
 bool da_insert_element(DynamicArray *array, void *element, size_t index)
 {
-    if (index > array->size)
-        return false;
-
+    if (index >= array->size) return false;
+        
     if (array->size >= array->capacity)
     {
         array->capacity *= 2;
@@ -56,7 +55,9 @@ bool da_insert_element(DynamicArray *array, void *element, size_t index)
 
     // move elements to the right
     for (size_t i = array->size; i > index; --i)
+    {
         array->data[i] = array->data[i - 1];
+    }
 
     // insert the new element
     array->data[index] = element;
@@ -67,16 +68,12 @@ bool da_insert_element(DynamicArray *array, void *element, size_t index)
 
 bool da_remove_element(DynamicArray *array, size_t index)
 {
-    if (index > array->size)
-        return false;
+    if (index >= array->size) return false;
 
-    // shift elements to the left
     const size_t size = (array->size - index - 1) * sizeof(void *);
-    if (size >= array->size)
-        return false;
+    if (size >= array->size) return false;
 
     memmove(&array->data[index], &array->data[index + 1], size);
-    
     array->data[array->size] = NULL;
     array->size--;
 
@@ -85,8 +82,7 @@ bool da_remove_element(DynamicArray *array, size_t index)
 
 bool da_free(DynamicArray *array)
 {
-    if (!array)
-        return false;
+    if (!array) return false;
 
     free(array->data);
     free(array);
@@ -96,7 +92,7 @@ bool da_free(DynamicArray *array)
 
 void *da_get_element(DynamicArray *array, size_t index)
 {
-    if (index > array->size)
+    if (index >= array->size)
         return NULL;
     
     return array->data[index];

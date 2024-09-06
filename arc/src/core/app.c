@@ -16,7 +16,9 @@ Application *app_get_instance()
 
 void app_run(Application *app)
 {
-    app->window = window_init(1080, 700, "Arc");
+    app->window = window_init(1080, 540, "Arc");
+    InitAudioDevice();
+
     app->window->background_color = RAYWHITE;
     app->time_seconds = 0.0f;
     scene_create(&app->scene);
@@ -39,6 +41,8 @@ void app_run(Application *app)
         }
         EndDrawing();
     }
+
+    CloseAudioDevice();
 }
 
 void app_update_simulation(Application *app, f32 delta_time)

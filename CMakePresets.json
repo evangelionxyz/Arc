@@ -1,7 +1,6 @@
 {
     "version": 3,
     "configurePresets": [
-        // Windows Base
         {
             "name": "windows-base",
             "hidden": true,
@@ -22,7 +21,6 @@
                 "rhs": "Windows"
             }
         },
-        // Windows Debug (x64)
         {
             "name": "windows-x64-debug",
             "displayName": "x64 Debug",
@@ -31,7 +29,6 @@
                 "CMAKE_BUILD_TYPE": "Debug"
             }
         },
-        // Windows Release (x64)
         {
             "name": "windows-x64-release",
             "displayName": "x64 Release",
@@ -40,7 +37,6 @@
                 "CMAKE_BUILD_TYPE": "Release"
             }
         },
-        // Linux Base
         {
             "name": "linux-base",
             "hidden": true,
@@ -59,7 +55,6 @@
             }
 
         },
-        // Linux Debug
         {
             "name": "linux-x64-debug",
             "displayName": "x64 Debug",
@@ -68,7 +63,6 @@
                 "CMAKE_BUILD_TYPE": "Debug"
             }
         },
-        // Linux Release
         {
             "name": "linux-x64-release",
             "displayName": "x64 Release",
@@ -77,7 +71,6 @@
                 "CMAKE_BUILD_TYPE": "Release"
             }
         },
-        // macos settings
         {
             "name": "macos-debug",
             "displayName": "macOS Debug",

@@ -8,6 +8,8 @@ typedef struct Scene {
     GoRegistry registry;
     Camera2D camera;
     b2WorldId b2_world_id;
+    Music theme_music;
+    Sound sound_effect;
 } Scene;
 
 void scene_create(Scene *scene);

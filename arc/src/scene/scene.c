@@ -2,12 +2,19 @@
 
 #include <math.h>
 #include <stdio.h>
+#include <raymath.h>
 
 #include "core/window.h"
 
 void scene_create(Scene *scene)
 {
-    const Window *window = window_get_instance();
+    i32 screen_width = GetScreenWidth();
+    i32 screen_height = GetScreenHeight();
+
+    // load resources
+    scene->theme_music = LoadMusicStream("data/sounds/theme.mp3");
+    scene->sound_effect = LoadSound("data/sounds/vine-boom.mp3");
+    PlayMusicStream(scene->theme_music);
 
     // create physics 2d world
     scene->b2_world_id = physics_2d_init();
@@ -16,9 +23,8 @@ void scene_create(Scene *scene)
     scene->registry.game_objects = da_create(10);
     scene->registry.components = da_create(10);
 
-
     Vector3 pos = { 0.0f, -150.0f, 0.0f };
-    Vector3 rotation = { 0.0f, 0.0f, 0.0f };
+    Vector3 rotation = Vector3Zero();
     Vector3 scale = { 30, 30.0f, 1.0f };
 
     {
@@ -28,49 +34,50 @@ void scene_create(Scene *scene)
         sprite->tint_color = BLUE;
         add_component(go, sprite, scene);
 
-        BoxCollider2DComponent *bc = create_component(T_BOX_COLLIDER);
-        
-        bc->gravity_scale = 1060.0f; // m/ s*2
-        bc->restitution = 10.0f;
-        bc->friction = 0.0f;
-        bc->body_type = Dynamic;
-        physics_2d_attach_box_collider(scene->b2_world_id, bc, *get_transform_component(go, scene));
-        add_component(go, bc, scene);
+        BoxCollider2DComponent *collider = create_component(T_BOX_COLLIDER);
+        collider->gravity_scale = 1060.0f; // m/ s*2
+        collider->restitution = 10.0f;
+        collider->friction = 0.0f;
+        collider->body_type = Dynamic;
+        collider->user_data = go;
+        physics_2d_attach_box_collider(scene->b2_world_id, collider, *get_transform_component(go, scene));
+        add_component(go, collider, scene);
     }
 
-    i32 count = 50;
-    for (i32 i = -count; i < count; i++)
+    for (i32 i = 0; i < 10; i++)
     {
-        pos.y = -200.0f + i * scale.y / 1.5f;
-        pos.x = i + i * scale.x / 2.0f;
-        GameObject *go = create_game_object("enemy", scene, pos, scale, rotation);
+        pos.y = -100.0f;
+        pos.x = i * scale.x;
+        GameObject *go = create_game_object(i % 2 == 0 ? "enemy" : "no_enemy", scene, pos, scale, rotation);
         SpriteComponent *sprite = create_component(T_SPRITE);
-        sprite->tint_color = i % 2 == 0 ? BLUE : ORANGE;
+        sprite->tint_color = BLUE;
         add_component(go, sprite, scene);
-        BoxCollider2DComponent *bc = create_component(T_BOX_COLLIDER);
 
-        bc->gravity_scale = 1060.0f; // m/ s*2
-        bc->restitution = 10.0f;
-        bc->friction = 0.0f;
-        bc->body_type = Dynamic;
-        physics_2d_attach_box_collider(scene->b2_world_id, bc, *get_transform_component(go, scene));
-        add_component(go, bc, scene);
+        BoxCollider2DComponent *collider = create_component(T_BOX_COLLIDER);
+        collider->body_type = Dynamic;
+        collider->restitution = 5.0f;
+        collider->friction = 0.0f;
+        collider->gravity_scale = 1000.0f;
+        collider->user_data = go;
+        physics_2d_attach_box_collider(scene->b2_world_id, collider, *get_transform_component(go, scene));
+        add_component(go, collider, scene);
     }
-    
 
     {
-        pos.x = 0.0f;
-        pos.y = 100.0f;
-        scale.x = 10000.0f;
+        scale.x = 1000.0f;
         scale.y = 50.0f;
 
+        pos.x = 0.0f;
+        pos.y = 100.0f;
+
         GameObject *go = create_game_object("floor", scene, pos, scale, rotation);
-        BoxCollider2DComponent *bc = create_component(T_BOX_COLLIDER);
-        bc->body_type = Static;
-        bc->restitution = 5.0f;
-        bc->friction = 0.0f;
-        physics_2d_attach_box_collider(scene->b2_world_id, bc, *get_transform_component(go, scene));
-        add_component(go, bc, scene);
+        BoxCollider2DComponent *collider = create_component(T_BOX_COLLIDER);
+        collider->body_type = Static;
+        collider->restitution = 5.0f;
+        collider->friction = 0.0f;
+        collider->user_data = go;
+        physics_2d_attach_box_collider(scene->b2_world_id, collider, *get_transform_component(go, scene));
+        add_component(go, collider, scene);
         SpriteComponent *sprite= create_component(T_SPRITE);
         //sprite->texture = load_sprite_texture("data/textures/checkerboard.png", (i32)scale.x, (i32)scale.y);
         sprite->tint_color = MAROON;
@@ -78,7 +85,7 @@ void scene_create(Scene *scene)
     }
     
 
-    const Vector2 cam_offset = { window->width / 2.0f, window->height / 2.0f };
+    const Vector2 cam_offset = { screen_width / 2.0f, screen_height / 2.0f };
     scene->camera.offset = cam_offset;
     scene->camera.target = (Vector2){0.0f, 0.0f};
     scene->camera.rotation = 0.0f;
@@ -87,9 +94,12 @@ void scene_create(Scene *scene)
 
 void scene_update_simulation(Scene *scene, const f32 delta_time)
 {
+    // update audio
+    UpdateMusicStream(scene->theme_music);
+
     const f32 speed = 200.0f;
 
-    Vector3 velocity = {0.0f, 0.0f };
+    Vector2 velocity = {0.0f, 0.0f };
     if (IsKeyDown(KEY_W)) velocity.y -= 1.0f;
     else if (IsKeyDown(KEY_S)) velocity.y += 1.0f;
     if (IsKeyDown(KEY_A)) velocity.x -= 1.0f;
@@ -99,12 +109,25 @@ void scene_update_simulation(Scene *scene, const f32 delta_time)
     if (player != NULL)
     {
         TransformComponent *transform = get_transform_component(player, scene);
-        BoxCollider2DComponent *bc = get_component(player, T_BOX_COLLIDER, scene);
-        if (transform != NULL && bc != NULL)
+        BoxCollider2DComponent *collider = get_component(player, T_BOX_COLLIDER, scene);
+        if (transform != NULL && collider != NULL)
         {
-            bc->linear_velocity.x = velocity.x * speed;
-            bc->linear_velocity.y = velocity.y * speed;
+            for (int i = 0; i < collider->event_count; ++i)
+            {
+                Collision2DEvent* event = &collider->collision_events[i];
+                if (event->is_begin)
+                {
+                    PlaySound(scene->sound_effect);
 
+                    if (strcmp(event->game_object->name, "enemy") == 0)
+                        destroy_game_object(event->game_object, scene);
+                }
+                    
+            }
+            // Clear events after processing
+            collider->event_count = 0;
+            
+            collider->linear_velocity = Vector2Add(collider->linear_velocity, velocity);
             scene_update_camera(&scene->camera, transform->translation, delta_time);
         }
     }
@@ -137,6 +160,9 @@ void scene_update_render(Scene *scene, const f32 delta_time)
 
 void scene_destroy(Scene *scene)
 {
+    UnloadMusicStream(scene->theme_music);
+    UnloadSound(scene->sound_effect);
+
     for (size_t i = 0; i < scene->registry.game_objects->size; i++)
     {
         GameObject *go = scene->registry.game_objects->data[i];
@@ -164,5 +190,3 @@ void scene_update_camera(Camera2D *camera, Vector3 player_position, f32 delta_ti
     camera->target.x = player_position.x;
     camera->target.y = player_position.y;
 }
-
-

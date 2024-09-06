@@ -10,19 +10,21 @@
 static const INVALID_COMPONENT_ID = (u32)-1;
 
 typedef struct Scene Scene;
+
 typedef struct GameObject {
     u32 component_ids[MAX_COMPONENT];
     u8 component_count;
     size_t id;
     const char *name;
+    Scene *scene;
 } GameObject;
 
-typedef struct GoRegistry {
+typedef struct {
     DynamicArray *game_objects;
     DynamicArray *components;
 } GoRegistry;
 
-GameObject *create_game_object(const char *name, const Scene *scene, const Vector3 position, const Vector3 scale, const Vector3 rotation);
+GameObject *create_game_object(const char *name, Scene *scene, const Vector3 position, const Vector3 scale, const Vector3 rotation);
 GameObject *get_game_object_by_name(const char *name, const Scene *scene);
 void destroy_game_object(GameObject *go, Scene *scene);
 
