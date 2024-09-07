@@ -9,7 +9,7 @@ DynamicArray *da_create(size_t capacity)
     return array;
 }
 
-bool da_push_back(DynamicArray *array, void *element)
+void *da_push_back(DynamicArray *array, void *element)
 {
     // resize the array if necessary
     if (array->size >= array->capacity)
@@ -23,10 +23,10 @@ bool da_push_back(DynamicArray *array, void *element)
     array->data[array->size] = element;
     array->size++;
 
-    return true;
+    return NULL;
 }
 
-bool da_pop_back(DynamicArray *array)
+void *da_pop_back(DynamicArray *array)
 {
     if (array == NULL || array->size == 0)
         return false;
@@ -38,7 +38,7 @@ bool da_pop_back(DynamicArray *array)
     return true;
 }
 
-bool da_insert_element(DynamicArray *array, void *element, size_t index)
+void *da_insert_element(DynamicArray *array, void *element, size_t index)
 {
     if (index >= array->size) return false;
         
@@ -66,28 +66,31 @@ bool da_insert_element(DynamicArray *array, void *element, size_t index)
     return true;
 }
 
-bool da_remove_element(DynamicArray *array, size_t index)
+void *da_remove_element(DynamicArray *array, size_t index)
 {
-    if (index >= array->size) return false;
+    if (index >= array->size) return NULL;
 
-    const size_t size = (array->size - index - 1) * sizeof(void *);
-    if (size >= array->size) return false;
+    void *removed_element = array->data[index];
 
-    memmove(&array->data[index], &array->data[index + 1], size);
-    array->data[array->size] = NULL;
+    const size_t elements_to_move = array->size - index - 1;
+    if (elements_to_move > 0)
+    {
+        memmove(&array->data[index], &array->data[index + 1],
+            elements_to_move * sizeof(void *));
+    }
+
     array->size--;
+    array->data[array->size] = NULL;
 
-    return true;
+    return removed_element;
 }
 
-bool da_free(DynamicArray *array)
+void da_free(DynamicArray *array)
 {
     if (!array) return false;
 
     free(array->data);
     free(array);
-
-    return true;
 }
 
 void *da_get_element(DynamicArray *array, size_t index)

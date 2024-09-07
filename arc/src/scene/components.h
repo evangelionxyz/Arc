@@ -8,10 +8,11 @@
 #include <stdlib.h>
 
 typedef struct GameObject GameObject;
+typedef struct Scene Scene;
 
 typedef enum
 {
-    Static, Kinematic, Dynamic
+    StaticBody2D, KinematicBody2D, DynamicBody2D
 } BodyType2D;
 
 typedef enum CompType
@@ -19,12 +20,14 @@ typedef enum CompType
     T_NONE = 0,
     T_TRANSFORM,
     T_SPRITE,
-    T_BOX_COLLIDER
+    T_BOX_COLLIDER_2D,
+    T_RIGIDBODY_2D
 } CompType;
 
 typedef struct Component
 {
     CompType type;
+    Scene *scene;
     size_t id;
 } Component;
 
@@ -50,7 +53,7 @@ typedef struct Collision2DEvent {
     bool is_begin;
 } Collision2DEvent;
 
-typedef struct BoxCollider2DComponent
+typedef struct BoxCollider2D
 {
     Component base;
     b2BodyId body_id;
@@ -59,12 +62,16 @@ typedef struct BoxCollider2DComponent
 
     Vector2 offset;
     Vector2 size;
-    Vector2 linear_velocity;
 
+    Vector2 linear_velocity;
+    Vector2 force;
     f32 angular_velocity;
     f32 gravity_scale;
     f32 friction;
     f32 restitution;
+    f32 density;
+    f32 linear_damping;
+    f32 angular_damping;
 
     bool is_sensor;
     bool use_gravity;
@@ -75,11 +82,17 @@ typedef struct BoxCollider2DComponent
 
     void *user_data;
     
-} BoxCollider2DComponent;
+} BoxCollider2D;
 
+typedef struct Rigidbody2D
+{
+    Component base;
+} Rigidbody2D;
 
 void *create_component(CompType type);
 Texture load_sprite_texture(const char *path, i32 width, i32 height);
 void draw_sprite(const TransformComponent *transform, const SpriteComponent *sprite);
+
+const char *get_component_type_str(CompType type);
 
 #endif

@@ -1,7 +1,11 @@
 #ifndef TYPES_H
 #define TYPES_H
 
+#include <stdbool.h>
 #include <stdint.h>
+
+#define PIXEL_TO_METER 0.01f  // 1 pixel = 0.02 meters (or 50 pixels = 1 meter)
+#define METER_TO_PIXEL 100.0f  // Reverse of the above
 
 typedef unsigned char byte;
 typedef unsigned short ushort;

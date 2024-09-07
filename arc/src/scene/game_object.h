@@ -7,12 +7,12 @@
 #include "components.h"
 
 #define MAX_COMPONENT 10
-static const INVALID_COMPONENT_ID = (u32)-1;
+static const INVALID_COMPONENT_ID = (size_t)-1;
 
 typedef struct Scene Scene;
 
 typedef struct GameObject {
-    u32 component_ids[MAX_COMPONENT];
+    size_t component_ids[MAX_COMPONENT];
     u8 component_count;
     size_t id;
     const char *name;
@@ -28,11 +28,13 @@ GameObject *create_game_object(const char *name, Scene *scene, const Vector3 pos
 GameObject *get_game_object_by_name(const char *name, const Scene *scene);
 void destroy_game_object(GameObject *go, Scene *scene);
 
-void add_component(GameObject *go, void *component, const Scene *scene);
-void remove_component(GameObject *go, CompType type, Scene *scene);
+void *add_component(GameObject *go, void *component);
+void *remove_component(GameObject *go, CompType type);
 
-TransformComponent *get_transform_component(const GameObject *go, const Scene *scene);
-void *get_component(const GameObject *go, CompType type, const Scene *scene);
-bool has_component(const GameObject *go, CompType type, const Scene *scene);
+TransformComponent *get_transform_component(const GameObject *go);
+void *get_component(GameObject *go, CompType type);
+bool has_component(GameObject *go, CompType type);
+
+void *go_find_component_by_type(GameObject *go, Scene *scene, CompType component_type);
 
 #endif

@@ -16,7 +16,11 @@ add_executable(arc
     src/scene/scene.h
     src/scene/physics_2d.h
     src/scene/physics_2d.c
- "src/scene/sprite_sheet.h" "src/scene/sprite_sheet.c")
+    src/scene/player.c
+    src/scene/player.h
+    src/scene/sprite_sheet.h
+    src/scene/sprite_sheet.c
+)
 
 target_include_directories(arc PRIVATE
     ${THIRD_PARTY_DIR}/raylib/src/
