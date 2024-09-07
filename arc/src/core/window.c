@@ -11,6 +11,7 @@ Window *window_init(i32 width, i32 height, const char *title)
     s_Window->title = title;
 
     InitWindow(width, height, title);
+    SetWindowState(FLAG_WINDOW_RESIZABLE);
     SetTargetFPS(60);
     SetExitKey(KEY_NULL);
 
@@ -44,12 +45,11 @@ i32 window_is_looping(Window *window)
     return WindowShouldClose() == 0;
 }
 
-void window_clear(Window *window)
+void window_update(Window *window)
 {
-    ClearBackground(window->background_color);
-}
+    if (IsKeyPressed(KEY_F11))
+        ToggleFullscreen();
 
-void window_poll_events(Window *window)
-{
-    PollInputEvents();
+    ClearBackground(window->background_color);
+    
 }

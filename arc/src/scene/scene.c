@@ -13,10 +13,7 @@ void scene_create(Scene *scene)
     scene->sound_effect = LoadSound("data/sounds/vine-boom.mp3");
     PlayMusicStream(scene->theme_music);
 
-    i32 screen_width = GetScreenWidth();
-    i32 screen_height = GetScreenHeight();
-
-    const Vector2 cam_offset = { screen_width / 2.0f, screen_height / 2.0f };
+    const Vector2 cam_offset = { GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f };
     scene->camera.offset = cam_offset;
     scene->camera.target = (Vector2){0.0f, 0.0f};
     scene->camera.rotation = 0.0f;
@@ -108,12 +105,12 @@ void update_camera(Camera2D *camera, Vector3 player_pos, f32 delta_time)
     const float offset = 50.0f;
     const float min_x = camera->target.x - offset;
     const float max_x = camera->target.x + offset;
-    const float min_y = camera->target.y - offset;
-    const float max_y = camera->target.y + offset;
+    const float min_y = camera->target.y - offset / 2.0f;
+    const float max_y = camera->target.y + offset / 2.0f;
 
     const float speed = Vector2Distance((Vector2){player_pos.x, player_pos.y}, 
                         camera->target) //(Vector2){max_x + min_x, max_y - min_y})
-                        * PIXEL_TO_METER * 2.0f;
+                        * PIXEL_TO_METER * 6.0f;
 
     if (player_pos.x < min_x)
     {
@@ -164,9 +161,9 @@ void create_levels(Scene *scene)
     // platform
     {
         scale.x = 10000.0f;
-        scale.y = 50.0f;
+        scale.y = 100.0f;
         pos.x = 0.0f;
-        pos.y = 100.0f;
+        pos.y = 150.0f;
         GameObject *go = create_game_object("platform", scene, pos, scale, rotation);
 
         BoxCollider2D *collider = create_component(T_BOX_COLLIDER_2D);
@@ -178,6 +175,27 @@ void create_levels(Scene *scene)
 
         SpriteComponent *sprite = create_component(T_SPRITE);
         sprite->tint_color = DARKBROWN;
+        add_component(go, sprite);
+    }
+
+    // obstacle
+    for (i32 i = 0; i < 20; ++i)
+    {
+        scale.x = 100.0f;
+        scale.y = 50.0f;
+        pos.x = (i * scale.x + scale.x);
+        pos.y = 100.0f - (i * scale.y + scale.y);
+        GameObject *go = create_game_object("platform", scene, pos, scale, rotation);
+
+        BoxCollider2D *collider = create_component(T_BOX_COLLIDER_2D);
+        collider->body_type = StaticBody2D;
+        collider->gravity_scale = 0.0f;
+        collider->user_data = go;
+        physics_2d_attach_box_collider(scene->b2_world_id, collider, *get_transform_component(go));
+        add_component(go, collider);
+
+        SpriteComponent *sprite = create_component(T_SPRITE);
+        sprite->tint_color = RED;
         add_component(go, sprite);
     }
 }

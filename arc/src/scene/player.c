@@ -6,8 +6,7 @@
 Player *player_create(Scene *scene)
 {
     Player *player = malloc(sizeof(Player));
-    player->jump_interval = 2.0f;  // 2 seconds
-    player->jump_cool_down = player->jump_interval;
+    player->jump_count = 0;
     player->is_jumping = false;
     player->move_speed = 18.0f;
     player->jump_height = 150.0f; // in newton
@@ -51,15 +50,26 @@ void player_update(Player *player, f32 delta_time)
 
         Vector2 velocity = {0.0f, 0.0f };
 
-        if (!player->is_jumping)
+        if (player->jump_count <= 2)
         {
+            if (IsKeyDown(KEY_SPACE))
+            {
+                velocity.y = player->jump_height;
+                player->jump_count++;
+            }
+
             if (IsKeyDown(KEY_A))
                 velocity.x = -player->move_speed;
             else if (IsKeyDown(KEY_D))
                 velocity.x = player->move_speed;
+        }
 
-            if (IsKeyDown(KEY_SPACE))
-                velocity.y = player->jump_height;
+        if(player->is_jumping)
+        {
+            if (IsKeyDown(KEY_A))
+                velocity.x = -player->move_speed / 3.0f;
+            else if (IsKeyDown(KEY_D))
+                velocity.x = player->move_speed / 3.0f;
         }
 
         //set_linear_velocity(collider, velocity);
@@ -79,15 +89,19 @@ void player_collision_2d(Player *player, BoxCollider2D *collider)
             if (strcmp(event->game_object->name, "platform") == 0)
             {
                 player->is_jumping = false;
+                player->jump_count = 0;
             }
 
             if (strcmp(event->game_object->name, "enemy") == 0)
             {
                 // TODO: add sound bank
-                //PlaySound(->sound_effect);
+                PlaySound(player->go->scene->sound_effect);
                 destroy_game_object(event->game_object, player->go->scene);
             }
 
+        }
+        else if (event->is_hit)
+        {
         }
         else // collision exit
         {

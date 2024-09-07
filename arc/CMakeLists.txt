@@ -1,7 +1,7 @@
 add_executable(arc
     src/main.c
-    src/core/app.c
-    src/core/app.h
+    src/core/game.c
+    src/core/game.h
     src/core/darray.c
     src/core/darray.h
     src/core/string_utils.h
@@ -20,7 +20,9 @@ add_executable(arc
     src/scene/player.h
     src/scene/sprite_sheet.h
     src/scene/sprite_sheet.c
-)
+    src/core/hash_map.h 
+    src/core/has_map.c
+ "src/core/sound_bank.h" "src/core/sound_bank.c")
 
 target_include_directories(arc PRIVATE
     ${THIRD_PARTY_DIR}/raylib/src/

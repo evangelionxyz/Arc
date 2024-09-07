@@ -51,6 +51,7 @@ typedef struct SpriteComponent
 typedef struct Collision2DEvent {
     GameObject *game_object;
     bool is_begin;
+    bool is_hit;
 } Collision2DEvent;
 
 typedef struct BoxCollider2D

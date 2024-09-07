@@ -11,11 +11,9 @@ typedef struct Scene Scene;
 
 typedef struct Player {
     GameObject *go;
-
     f32 move_speed;
-    f32 jump_interval;
-    f32 jump_cool_down;
     f32 jump_height;
+    u8 jump_count;
     bool is_jumping;
 } Player;
 

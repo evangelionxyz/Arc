@@ -102,10 +102,24 @@ void physics_2d_simulate(Scene *scene, f32 delta_time)
         GameObject *go_a = b2Shape_GetUserData(begin_touch->shapeIdA);
         GameObject *go_b = b2Shape_GetUserData(begin_touch->shapeIdB);
 
-        Collision2DEvent event_a = { .game_object = go_b, .is_begin = true };
+        Collision2DEvent event_a = { .game_object = go_b, .is_begin = true, .is_hit = false };
         physics_2d_dispatch_collision_event(go_a, &event_a);
 
-        Collision2DEvent event_b = { .game_object = go_a, .is_begin = true };
+        Collision2DEvent event_b = { .game_object = go_a, .is_begin = true, .is_hit = false };
+        physics_2d_dispatch_collision_event(go_b, &event_b);
+    }
+
+    for (i32 i = 0; i < contact_events.hitCount; ++i)
+    {
+        b2ContactHitEvent *hit = contact_events.hitEvents + i;
+
+        GameObject *go_a = b2Shape_GetUserData(hit->shapeIdA);
+        GameObject *go_b = b2Shape_GetUserData(hit->shapeIdB);
+
+        Collision2DEvent event_a = { .game_object = go_b, .is_begin = true, .is_hit = true };
+        physics_2d_dispatch_collision_event(go_a, &event_a);
+
+        Collision2DEvent event_b = { .game_object = go_a, .is_begin = true, .is_hit = true };
         physics_2d_dispatch_collision_event(go_b, &event_b);
     }
 
@@ -116,10 +130,10 @@ void physics_2d_simulate(Scene *scene, f32 delta_time)
         GameObject *go_a = b2Shape_GetUserData(end_touch->shapeIdA);
         GameObject *go_b = b2Shape_GetUserData(end_touch->shapeIdB);
 
-        Collision2DEvent event_a = { .game_object = go_b, .is_begin = false };
+        Collision2DEvent event_a = { .game_object = go_b, .is_begin = false, .is_hit = false };
         physics_2d_dispatch_collision_event(go_a, &event_a);
 
-        Collision2DEvent event_b = { .game_object = go_a, .is_begin = false };
+        Collision2DEvent event_b = { .game_object = go_a, .is_begin = false, .is_hit = false };
         physics_2d_dispatch_collision_event(go_b, &event_b);
     }
 

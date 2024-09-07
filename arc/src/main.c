@@ -1,9 +1,10 @@
-#include "core/app.h"
+#include "core/game.h"
 
-int main(int argc, char **argv)
+
+i32 main(i32 argc, char **argv)
 {
-    Application *app = app_create(argc, argv);
-    app_run(app);
-    app_close(app);
+    Game *game = game_create(argc, argv);
+    game_run(game);
+    game_close(game);
     return 0;
 }
